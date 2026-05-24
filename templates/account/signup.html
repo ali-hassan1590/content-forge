@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Sign up{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto card">
+  <h1 class="text-2xl font-bold mb-2">Create account</h1>
+  <p class="text-slate-400 text-sm mb-6">Start with 100 free AI credits</p>
+
+  <form method="post" action="{% url 'account_signup' %}" class="space-y-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="text-red-400 text-sm">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% for field in form %}
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">{{ field.label }}</label>
+      <input type="{% if 'password' in field.name %}password{% else %}text{% endif %}"
+             name="{{ field.name }}"
+             id="{{ field.id_for_label }}"
+             value="{{ field.value|default:'' }}"
+             class="input-field"
+             {% if field.field.required %}required{% endif %}>
+      {% if field.errors %}<p class="text-red-400 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+      {% if field.help_text %}<p class="text-slate-500 text-xs mt-1">{{ field.help_text }}</p>{% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn-primary w-full">Create account</button>
+  </form>
+  <p class="text-slate-500 text-sm mt-6 text-center">
+    Already have an account? <a href="{% url 'account_login' %}" class="text-brand-500 hover:underline">Sign in</a>
+  </p>
+</div>
+{% endblock %}

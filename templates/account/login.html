@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto card">
+  <h1 class="text-2xl font-bold mb-2">Sign in</h1>
+  <p class="text-slate-400 text-sm mb-6">Welcome back to ContentForge</p>
+
+  <form method="post" action="{% url 'account_login' %}" class="space-y-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="text-red-400 text-sm">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% for field in form %}
+    <div>
+      <label class="block text-sm text-slate-300 mb-1">{{ field.label }}</label>
+      <input type="{{ field.field.widget.input_type|default:'text' }}"
+             name="{{ field.name }}"
+             id="{{ field.id_for_label }}"
+             value="{{ field.value|default:'' }}"
+             class="input-field"
+             {% if field.field.required %}required{% endif %}>
+      {% if field.errors %}<p class="text-red-400 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+    </div>
+    {% endfor %}
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+    <button type="submit" class="btn-primary w-full">Sign in</button>
+  </form>
+  <p class="text-slate-500 text-sm mt-6 text-center">
+    No account? <a href="{% url 'account_signup' %}" class="text-brand-500 hover:underline">Sign up</a>
+  </p>
+</div>
+{% endblock %}

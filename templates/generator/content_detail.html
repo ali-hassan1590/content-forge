@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{ content.topic }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+  <div>
+    <p class="text-sm text-brand-500">{{ content.project.get_content_type_display }}</p>
+    <h1 class="text-2xl font-bold">{{ content.topic }}</h1>
+    <p class="text-slate-500 text-sm mt-1">
+      {{ content.word_count_actual }} words · Tone: {{ content.get_tone_display }}
+      {% if content.readability_score %}· Readability: {{ content.readability_score }} ({{ readability_label }}){% endif %}
+    </p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'export_content' content.pk 'md' %}" class="btn-secondary text-xs">Export MD</a>
+    <a href="{% url 'export_content' content.pk 'txt' %}" class="btn-secondary text-xs">Export TXT</a>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 space-y-6">
+    <div class="card prose-content">
+      {{ html_content|safe }}
+    </div>
+
+    <div class="card" x-data="{ editing: false }">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-semibold">Edit content</h2>
+        <button @click="editing = !editing" class="btn-secondary text-xs" type="button">
+          <span x-text="editing ? 'Cancel' : 'Edit'"></span>
+        </button>
+      </div>
+      <form method="post" action="{% url 'content_edit' content.pk %}" x-show="editing">
+        {% csrf_token %}
+        {{ edit_form.content }}
+        <button type="submit" class="btn-primary mt-4 text-sm">Save changes</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="space-y-4">
+    <div class="card">
+      <h2 class="font-semibold mb-4">AI Tools</h2>
+      <div class="space-y-2">
+        <form method="post" action="{% url 'analyze_seo' content.pk %}"
+              hx-post="{% url 'analyze_seo' content.pk %}"
+              hx-target="#seo-panel" hx-swap="innerHTML">
+          {% csrf_token %}
+          <button type="submit" class="btn-secondary w-full text-sm">SEO analysis (2 credits)</button>
+        </form>
+        <form method="post" action="{% url 'grammar_check' content.pk %}"
+              hx-post="{% url 'grammar_check' content.pk %}"
+              hx-target="#grammar-panel" hx-swap="innerHTML">
+          {% csrf_token %}
+          <button type="submit" class="btn-secondary w-full text-sm">Grammar check</button>
+        </form>
+        <form method="post" action="{% url 'generate_image' content.pk %}">
+          {% csrf_token %}
+          <select name="style" class="input-field text-sm mb-2">
+            <option value="photorealistic">Photorealistic</option>
+            <option value="illustration">Illustration</option>
+            <option value="cinematic">Cinematic</option>
+          </select>
+          <button type="submit" class="btn-secondary w-full text-sm">Generate image (10 credits)</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="seo-panel" class="card">
+      <h2 class="font-semibold mb-3">SEO</h2>
+      {% if content.seo_score %}
+      <p class="text-2xl font-bold text-brand-500 mb-2">{{ content.seo_score }}/100</p>
+      {% if content.seo_meta_title %}
+      <p class="text-xs text-slate-500 uppercase mb-1">Meta title</p>
+      <p class="text-sm mb-3">{{ content.seo_meta_title }}</p>
+      {% endif %}
+      {% if content.seo_meta_description %}
+      <p class="text-xs text-slate-500 uppercase mb-1">Meta description</p>
+      <p class="text-sm text-slate-400">{{ content.seo_meta_description }}</p>
+      {% endif %}
+      {% else %}
+      <p class="text-slate-500 text-sm">Run SEO analysis to get suggestions.</p>
+      {% endif %}
+    </div>
+
+    <div id="grammar-panel" class="card">
+      <h2 class="font-semibold mb-3">Grammar notes</h2>
+      {% if content.grammar_notes %}
+      <pre class="text-sm text-slate-300 whitespace-pre-wrap">{{ content.grammar_notes }}</pre>
+      {% else %}
+      <p class="text-slate-500 text-sm">Run grammar check for suggestions.</p>
+      {% endif %}
+    </div>
+
+    {% if content.image_url %}
+    <div class="card">
+      <img src="{{ content.image_url }}" alt="Generated" class="rounded-lg w-full">
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
